@@ -16,7 +16,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest   # Github-hosted
-    # runs-on: self-hosted           # VM
+    runs-on: self-hosted           # VM
     # runs-on: edu00-arc-runner-set  # AKS
 
     env:
