@@ -1,0 +1,49 @@
+name: cont-ci-10
+
+on:
+  workflow_dispatch:
+    inputs:
+      TagVersion:
+        description: 'Tag version for Docker image'
+        required: true
+        default: 'v1.1.0'
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    env:
+      IMAGE_NAME: ${{ vars.ACR_NAME }}.azurecr.io/${{ vars.EDUUSERID }}/samplejava
+      KUSTOMIZATION_FILE: gitops/kustomization.yaml
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }}:${{ github.event.inputs.TagVersion }} .
+
+      - name: Upload Docker image to Docker Hub
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ vars.ACR_NAME }}.azurecr.io
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push Docker image
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker tag  ${{ env.IMAGE_NAME }}:${{ github.event.inputs.TagVersion }} ${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.IMAGE_NAME }}:${{ github.event.inputs.TagVersion }}
+          docker push ${{ env.IMAGE_NAME }}:latest
