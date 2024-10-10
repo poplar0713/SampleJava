@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
         - name: samplejava
-          image: ktdseduacr.azurecr.io/edu00/samplejava:v1.0.0
+          image: ktdseduacr.azurecr.io/edu08/samplejava:v1.0.0
           resources:
             limits:
               memory: "512Mi"
